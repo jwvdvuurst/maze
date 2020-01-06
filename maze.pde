@@ -57,8 +57,8 @@ class field {
 
 class mazeclass {
   private field[][] _maze;
-  private final int maxcol = 4000;
-  private final int maxrow = 4000;
+  private final int maxcol = 1000;
+  private final int maxrow = 1000;
   
   public mazeclass() {
     _maze = new field[maxcol][maxrow];
@@ -159,7 +159,7 @@ class mazeclass {
         }
         if ( _maze[c + fromcol][r + fromrow].visited() ) {
           fill(255,0,0);
-          circle( (c+0.5)*colwidth, (r+0.5)*rowheight, (colwidth + rowheight) / 4 );
+//          circle( (c+0.5)*colwidth, (r+0.5)*rowheight, (colwidth + rowheight) / 4 );
         }
       }
     }
@@ -212,6 +212,31 @@ void keyPressed() {
   }
   if ( keyCode == RIGHT ) {
     x++;
+  }
+  
+  println( "x= "+x+" y= "+y );
+}
+
+void mouseDragged() {
+  if ( mouseY < pmouseY ) {
+    if ( y > 0) {
+      y--;
+    }
+  }
+  if ( mouseY > pmouseY ) {
+    if ( y < m.maxRow() ) {
+       y++;
+    }
+  }
+  if ( mouseX < pmouseX ) {
+    if ( x > 0 ) {
+      x--;
+    }
+  }
+  if ( mouseX > pmouseX ) {
+    if ( x < m.maxCol() ) {
+       x++;
+    }
   }
   
   println( "x= "+x+" y= "+y );
