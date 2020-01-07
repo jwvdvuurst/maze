@@ -1,6 +1,7 @@
 
 class field {
   private boolean visited;
+  private boolean current;
   private boolean wall_north;
   private boolean wall_east;
   private boolean wall_south;
@@ -8,6 +9,7 @@ class field {
   
   public field() {
     visited = false;
+    current = false;
     wall_north = random(50) < 15 ? false : true;
     wall_east = random(50) < 15 ? false : true;    
     wall_south = random(50) < 15 ? false : true;    
@@ -53,14 +55,26 @@ class field {
   public void visit() {
     visited = true;
   }
+  
+  public void setCurrent() {
+    current = true;
+  }
+  
+  public void resetCurrent() {
+    current = false;
+  }
+  
+  public boolean getCurrent() {
+    return current;
+  }
 }
 
 class mazeclass {
   private field[][] _maze;
-  private final int maxcol = 1000;
-  private final int maxrow = 1000;
+  private int maxcol = 1000;
+  private int maxrow = 1000;
   
-  public mazeclass() {
+  private void createmaze( int mc, int mr ) {
     _maze = new field[maxcol][maxrow];
     for( int c = 0; c < maxcol; c++ ) {
       for( int r = 0; r < maxrow; r++ ) {
@@ -82,6 +96,16 @@ class mazeclass {
       }
     }
   }
+
+  public mazeclass() {
+    createmaze( maxcol, maxrow );
+  }    
+  
+  public mazeclass( int mc, int mr ) {
+    maxcol = mc;
+    maxrow = mr;
+    createmaze( maxcol, maxrow );
+  }
   
   public field get( int c, int r ) {
     if ( ( c >= 0 ) && ( c < maxcol ) &&
@@ -98,7 +122,36 @@ class mazeclass {
       _maze[c][r].visit();
     }
   }
-
+  
+  public void switchCurrent( int c, int r ) {
+    if ( ( c >= 0 ) && ( c < maxcol ) &&
+         ( r >= 0 ) && ( r < maxrow ) ) {
+      if ( _maze[c][r].getCurrent() ) {
+        _maze[c][r].resetCurrent();
+      } else {
+        _maze[c][r].setCurrent();
+      }
+    }
+  }
+    
+  public boolean visited( int c, int r ) {
+    if ( ( c >= 0 ) && ( c < maxcol ) &&
+         ( r >= 0 ) && ( r < maxrow ) ) {
+      return _maze[c][r].visited();
+    } else {
+      return false;
+    }
+  }
+  
+  public boolean current( int c, int r ) {
+    if ( ( c >= 0 ) && ( c < maxcol ) &&
+         ( r >= 0 ) && ( r < maxrow ) ) {
+      return _maze[c][r].getCurrent();
+    } else {
+      return false;
+    }
+  }
+    
   public int maxCol() {
     return maxcol;
   }
@@ -158,28 +211,120 @@ class mazeclass {
           line( c*colwidth, r*rowheight, c*colwidth, (r+1)*rowheight );
         }
         if ( _maze[c + fromcol][r + fromrow].visited() ) {
-          fill(255,0,0);
-//          circle( (c+0.5)*colwidth, (r+0.5)*rowheight, (colwidth + rowheight) / 4 );
+          if ( _maze[c + fromcol][r + fromrow].getCurrent() ) {
+            fill(0,0,255);
+          } else {
+            fill(255,0,0);
+          }
+          circle( (c+0.5)*colwidth, (r+0.5)*rowheight, (colwidth + rowheight) / 4 );
         }
       }
     }
   }
 }
+
+class path {
+  private mazeclass _m;
+  private int px;
+  private int py;
+  
+  public path( mazeclass m, int x, int y ) {
+    _m = m;
+    
+    if (( x < 0 ) || ( x > _m.maxCol() ) ) {
+      x = 0;
+    }
+    if (( y < 0 ) || ( y > _m.maxRow() ) ) {
+      y = 0;
+    }
+    
+    px = x;
+    py = y;
+    
+    _m.visit( px, py );
+    _m.switchCurrent( px, py );
+  }
+  
+  public int X() {
+    return px;
+  }
+  
+  public int Y() {
+    return py;
+  }
+  
+  public void moveLeft() {
+    _m.switchCurrent( px, py );
+    if ( px > 0 ) {
+      if ( ! (_m.get( px, py ).west() && _m.get( px-1, py ).east()) ) {
+        px--;
+      }
+      
+      if ( ! _m.visited( px, py ) ) {
+        _m.get( px, py ).visit();
+      }
+    }
+    _m.switchCurrent( px, py );
+  }
+  
+  public void moveRight() {
+    _m.switchCurrent( px, py );
+    if ( px < _m.maxCol() - 2 ) {
+      if ( ! (_m.get( px, py ).east() && _m.get( px+1, py ).west()) ) {
+        px++;
+      }
+      
+      if ( ! _m.visited( px, py ) ) {
+        _m.get( px, py ).visit();
+      }
+    }
+    _m.switchCurrent( px, py );
+  }
+      
+  public void moveUp() {
+    _m.switchCurrent( px, py );
+    if ( py > 0 ) {
+      if ( ! (_m.get( px, py ).north() && _m.get( px, py-1 ).south()) ) {
+        py--;
+      }
+      
+      if ( ! _m.visited( px, py ) ) {
+        _m.get( px, py ).visit();
+      }
+    }
+    _m.switchCurrent( px, py );
+  }
+  
+  public void moveDown() {
+    _m.switchCurrent( px, py );
+    if ( py < _m.maxRow() - 2 ) {
+      if ( ! (_m.get( px, py ).south() && _m.get( px, py+1 ).north()) ) {
+        py++;
+      }
+      
+      if ( ! _m.visited( px, py ) ) {
+        _m.get( px, py ).visit();
+      }
+    }
+    _m.switchCurrent( px, py );
+  }
+}
+      
       
 mazeclass m;
-int x;
-int y;
+path p;
+
 
 void setup() {
-  size(800,800);
+//  size(800,800);
+  fullScreen();
   m = new mazeclass(); //<>//
-  x = m.maxCol() / 2;
-  y = m.maxRow() / 2;
+  p = new path( m, m.maxCol() / 2, m.maxRow() / 2 );
 }
 
 void draw() {
-  int sx = x - 20;
-  int sy = y - 20;
+  int sx = p.X() - 20;
+  int sy = p.Y() - 20;
   if (sx < 0) sx = 0;
   if (sy < 0) sy = 0;
   int ex = sx + 40;
@@ -198,46 +343,34 @@ void draw() {
 
 void keyPressed() {
   if ( keyCode == UP ) {
-    if ( y > 0) {
-      y--;
-    }
+    p.moveUp();
   }
   if ( keyCode == DOWN ) {
-    y++;
+    p.moveDown();
   }
   if ( keyCode == LEFT ) {
-    if ( x > 0 ) {
-      x--;
-    }
+    p.moveLeft();
   }
   if ( keyCode == RIGHT ) {
-    x++;
+    p.moveRight();
   }
   
-  println( "x= "+x+" y= "+y );
+  println( "x= "+p.X()+" y= "+p.Y() );
 }
 
 void mouseDragged() {
   if ( mouseY < pmouseY ) {
-    if ( y > 0) {
-      y--;
-    }
+    p.moveUp();
   }
   if ( mouseY > pmouseY ) {
-    if ( y < m.maxRow() ) {
-       y++;
-    }
+    p.moveDown();
   }
   if ( mouseX < pmouseX ) {
-    if ( x > 0 ) {
-      x--;
-    }
+    p.moveLeft();
   }
   if ( mouseX > pmouseX ) {
-    if ( x < m.maxCol() ) {
-       x++;
-    }
+    p.moveRight();
   }
   
-  println( "x= "+x+" y= "+y );
+  println( "x= "+p.X()+" y= "+p.Y() );
 }
