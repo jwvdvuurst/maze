@@ -30,10 +30,17 @@ class field {
     current = false;
     wall_north = random(50) < 17 ? false : true;
     wall_east = random(50) < 17 ? false : true;
-    //    wall_south = false;
-    //    wall_west = false;
     wall_south = random(50) < 17 ? false : true;    
     wall_west = random(50) < 17 ? false : true;
+  }
+
+  public field( field f ) {
+    visited = f.visited();
+    current = f.getCurrent();
+    wall_north = f.north();
+    wall_east = f.east();
+    wall_south = f.south();    
+    wall_west = f.west();
   }
 
   public boolean north() {
@@ -100,6 +107,8 @@ class mazeclass {
   private int maxrow = 2000;
   private direction d = direction.north;
   private modes viewmode = modes.m2d;
+  private int mazewidth = 5;
+  private int mazeheight = 5;
 
   private void createmaze( int mc, int mr ) {
     _maze = new field[maxcol][maxrow];
@@ -137,6 +146,7 @@ class mazeclass {
   public field get( int c, int r ) {
     if ( ( c >= 0 ) && ( c < maxcol ) &&
       ( r >= 0 ) && ( r < maxrow ) ) {
+//      return new field( _maze[c][r] );
       return _maze[c][r];
     } else {
       return null;
@@ -204,6 +214,10 @@ class mazeclass {
 
   public void setViewmode( modes m ) {
     viewmode = m;
+  }
+
+  public modes getViewmode() {
+    return viewmode;
   }
 
   public int maxCol() {
@@ -277,134 +291,135 @@ class mazeclass {
       }
     } else {      
       background(0);
+      noStroke();
       int currx = floor((fromcol + tocol) / 2);
       int curry = floor((fromrow + torow) / 2);
-      
-      mazepart = new field[5][5];
+
+      mazepart = new field[mazewidth][mazeheight];
       int xs, ys;
 
       switch( d ) {
-        case north:
-          xs = currx - 2;
-          ys = curry - 5;
- 
-          for ( int i = 0; i < 5; i++ ) {
-            for ( int j = 0; j < 5; j++ ) {
-              mazepart[i][j] = get( xs+i, ys+j );
-              mazepart[i][j].setnorth( get( xs+i, ys+j ).north() && get( xs+i, ys+j-1 ).south() );
-              mazepart[i][j].seteast( get( xs+i, ys+j ).east() && get( xs+i+1, ys+j ).west() );
-              mazepart[i][j].setsouth( get( xs+i, ys+j ).south() && get( xs+i, ys+j+1 ).north() );
-              mazepart[i][j].setwest( get( xs+i, ys+j ).west() && get( xs+i-1, ys+j ).east() );
-            }
+      case north:
+        xs = currx - ((mazewidth - 1) / 2);
+        ys = curry - mazeheight;
+
+        for ( int i = 0; i < mazewidth; i++ ) {
+          for ( int j = 0; j < mazeheight; j++ ) {
+            mazepart[i][j] = get( xs+i, ys+j );
+            mazepart[i][j].setnorth( get( xs+i, ys+j ).north() && get( xs+i, ys+j-1 ).south() );
+            mazepart[i][j].seteast( get( xs+i, ys+j ).east() && get( xs+i+1, ys+j ).west() );
+            mazepart[i][j].setsouth( get( xs+i, ys+j ).south() && get( xs+i, ys+j+1 ).north() );
+            mazepart[i][j].setwest( get( xs+i, ys+j ).west() && get( xs+i-1, ys+j ).east() );
           }
-          break;
-        case east:
-          xs = currx;
-          ys = curry - 2;
- 
-          for ( int i = 0; i < 5; i++ ) {
-            for ( int j = 0; j < 5; j++ ) {
-              mazepart[i][j] = get( xs+i, ys+j );
-              mazepart[i][j].setnorth( get( xs+i, ys+j ).north() && get( xs+i, ys+j-1 ).south() );
-              mazepart[i][j].seteast( get( xs+i, ys+j ).east() && get( xs+i+1, ys+j ).west() );
-              mazepart[i][j].setsouth( get( xs+i, ys+j ).south() && get( xs+i, ys+j+1 ).north() );
-              mazepart[i][j].setwest( get( xs+i, ys+j ).west() && get( xs+i-1, ys+j ).east() );
-            }
+        }
+        break;
+      case east:
+        xs = currx;
+        ys = curry - ((mazeheight - 1) / 2);
+
+        for ( int i = 0; i < mazeheight; i++ ) {
+          for ( int j = 0; j < mazewidth; j++ ) {
+            mazepart[i][j] = get( xs+i, ys+j );
+            mazepart[i][j].setnorth( get( xs+j, ys+i ).north() && get( xs+j, ys+i-1 ).south() );
+            mazepart[i][j].seteast( get( xs+j, ys+i ).east() && get( xs+j+1, ys+i ).west() );
+            mazepart[i][j].setsouth( get( xs+j, ys+i ).south() && get( xs+j, ys+i+1 ).north() );
+            mazepart[i][j].setwest( get( xs+j, ys+i ).west() && get( xs+j-1, ys+i ).east() );
           }
-          break;
-        case south:
-          xs = currx - 2;
-          ys = curry;
- 
-          for ( int i = 0; i < 5; i++ ) {
-            for ( int j = 0; j < 5; j++ ) {
-              mazepart[i][j] = get( xs+i, ys+j );
-              mazepart[i][j].setnorth( get( xs+i, ys+j ).north() && get( xs+i, ys+j-1 ).south() );
-              mazepart[i][j].seteast( get( xs+i, ys+j ).east() && get( xs+i+1, ys+j ).west() );
-              mazepart[i][j].setsouth( get( xs+i, ys+j ).south() && get( xs+i, ys+j+1 ).north() );
-              mazepart[i][j].setwest( get( xs+i, ys+j ).west() && get( xs+i-1, ys+j ).east() );
-            }
+        }
+        break;
+      case south:
+        xs = currx + ((mazewidth - 1)/2);
+        ys = curry;
+
+        for ( int i = 0; i < mazewidth; i++ ) {
+          for ( int j = 0; j < mazeheight; j++ ) {
+            mazepart[i][j] = get( xs-i, ys+j );
+            mazepart[i][j].setnorth( get( xs-i, ys-j ).north() && get( xs-i, ys-j-1 ).south() );
+            mazepart[i][j].seteast( get( xs-i, ys-j ).east() && get( xs+i-1, ys-j ).west() );
+            mazepart[i][j].setsouth( get( xs-i, ys-j ).south() && get( xs-i, ys-j+1 ).north() );
+            mazepart[i][j].setwest( get( xs-i, ys-j ).west() && get( xs-i-1, ys-j ).east() );
           }
-          break;
-        case west:
-          xs = currx - 5;
-          ys = curry - 2;
- 
-          for ( int i = 0; i < 5; i++ ) {
-            for ( int j = 0; j < 5; j++ ) {
-              mazepart[i][j] = get( xs+i, ys+j );
-              mazepart[i][j].setnorth( get( xs+i, ys+j ).north() && get( xs+i, ys+j-1 ).south() );
-              mazepart[i][j].seteast( get( xs+i, ys+j ).east() && get( xs+i+1, ys+j ).west() );
-              mazepart[i][j].setsouth( get( xs+i, ys+j ).south() && get( xs+i, ys+j+1 ).north() );
-              mazepart[i][j].setwest( get( xs+i, ys+j ).west() && get( xs+i-1, ys+j ).east() );
-            }
+        }
+        break;
+      case west:
+        xs = currx;
+        ys = curry + ((mazeheight - 1) / 2);
+
+        for ( int i = 0; i < mazeheight; i++ ) {
+          for ( int j = 0; j < mazewidth; j++ ) {
+            mazepart[i][j] = get( xs-i, ys-j );
+            mazepart[i][j].setnorth( get( xs-j, ys-i ).north() && get( xs-j, ys-i-1 ).south() );
+            mazepart[i][j].seteast( get( xs-j, ys-i ).east() && get( xs-j+1, ys-i ).west() );
+            mazepart[i][j].setsouth( get( xs-j, ys-i ).south() && get( xs-j, ys-i+1 ).north() );
+            mazepart[i][j].setwest( get( xs-j, ys-i ).west() && get( xs-j-1, ys-i ).east() );
           }
-          break;
-        default:
-          xs = currx - 2;
-          ys = curry - 5;
- 
-          for ( int i = 0; i < 5; i++ ) {
-            for ( int j = 0; j < 5; j++ ) {
-              mazepart[i][j] = get( xs+i, ys+j );
-              mazepart[i][j].setnorth( get( xs+i, ys+j ).north() && get( xs+i, ys+j-1 ).south() );
-              mazepart[i][j].seteast( get( xs+i, ys+j ).east() && get( xs+i+1, ys+j ).west() );
-              mazepart[i][j].setsouth( get( xs+i, ys+j ).south() && get( xs+i, ys+j+1 ).north() );
-              mazepart[i][j].setwest( get( xs+i, ys+j ).west() && get( xs+i-1, ys+j ).east() );
-            }
+        }
+        break;
+      default:
+        xs = currx - ((mazewidth - 1) / 2);
+        ys = curry - mazeheight;
+
+        for ( int i = 0; i < mazewidth; i++ ) {
+          for ( int j = 0; j < mazeheight; j++ ) {
+            mazepart[i][j] = get( xs+i, ys+j );
+            mazepart[i][j].setnorth( get( xs+i, ys+j ).north() && get( xs+i, ys+j-1 ).south() );
+            mazepart[i][j].seteast( get( xs+i, ys+j ).east() && get( xs+i+1, ys+j ).west() );
+            mazepart[i][j].setsouth( get( xs+i, ys+j ).south() && get( xs+i, ys+j+1 ).north() );
+            mazepart[i][j].setwest( get( xs+i, ys+j ).west() && get( xs+i-1, ys+j ).east() );
           }
-          break;
+        }
+        break;
       }
-      
-      int c = 190;
-      int nc = c + 13;
-      float f = 0.59;
+
+      int c = 255 - floor(128 / mazeheight);
+      int nc = c + floor(128 / mazeheight);
+      float f = 0.56;
       float nf = f * 1.11;
       int w = floor( width * f );
       int nw = floor( width * nf );
-      int dw = floor(w / 5);
-      int ndw = floor( nw / 5 );
+      int dw = floor(w / mazewidth);
+      int ndw = floor( nw / mazewidth );
       xs = floor( (width - w) / 2 );
       int nxs = floor( (width - nw) / 2 );
       int h = floor( height * f * 0.5);
       int nh = floor( height * nf * 0.5);
       ys = height - floor( (height - h) / 2 );
       int nys = height - floor( (height - nh) / 2 );
-      
-      
-      for( int j = 0; j<5; j++ ) {
-         for( int i = 0; i<5; i++ ) {
-            if ( mazepart[i][j].north() ) {
-              fill(c);
-              rect( xs+(dw*i), ys-h, dw, h );
-            }
-            if ( mazepart[i][j].west() ) {
-              fill( nc );
-              quad( xs+(dw*i), ys-h, nxs+(ndw*i), nys-nh, nxs+(ndw*i), nys, xs+(dw*i), ys );
-            }
-            if ( mazepart[i][j].east() ) {
-              fill( nc-1 );
-              quad( xs+(dw*(i+1)), ys-h, nxs+(ndw*(i+1)), nys-nh, nxs+(ndw*(i+1)), nys, xs+(dw*(i+1)), ys );
-            }
-            if ( mazepart[i][j].south() ) {
-              fill(c);
-              rect( nxs+(dw*i), nys-nh, ndw, nh );
-            }
-         }
-         c = nc;
-         f = nf;
-         xs = nxs;
-         w = nw;
-         dw = ndw;
-         ys = nys;
-         h = nh;
-         nc = c + 13;
-         nf = f * 1.11;
-         nw = floor( width * nf );
-         ndw = floor( nw / 5 );
-         nxs = floor( (width - nw) / 2 );
-         nh = floor( height * nf * 0.5);
-         nys = height - floor( (height - nh ) / 2 );         
+
+
+      for ( int j = 0; j<mazeheight; j++ ) {
+        for ( int i = 0; i<mazewidth; i++ ) {
+          if ( mazepart[i][j].north() ) {
+            fill(c);
+            rect( xs+(dw*i), ys-h, dw, h );
+          }
+          if ( mazepart[i][j].west() ) {
+            fill( nc );
+            quad( xs+(dw*i), ys-h, nxs+(ndw*i), nys-nh, nxs+(ndw*i), nys, xs+(dw*i), ys );
+          }
+          if ( mazepart[i][j].east() ) {
+            fill( nc-1 );
+            quad( xs+(dw*(i+1)), ys-h, nxs+(ndw*(i+1)), nys-nh, nxs+(ndw*(i+1)), nys, xs+(dw*(i+1)), ys );
+          }
+          if ( mazepart[i][j].south() ) {
+            fill(c);
+            rect( nxs+(dw*i), nys-nh, ndw, nh );
+          }
+        }
+        c = nc;
+        f = nf;
+        xs = nxs;
+        w = nw;
+        dw = ndw;
+        ys = nys;
+        h = nh;
+        nc = c + floor(128/mazeheight);
+        nf = f * 1.11;
+        nw = floor( width * nf );
+        ndw = floor( nw / mazewidth );
+        nxs = floor( (width - nw) / 2 );
+        nh = floor( height * nf * 0.5);
+        nys = height - floor( (height - nh ) / 2 );
       }
     }
   }
@@ -452,7 +467,7 @@ class path {
       }
     }
     _m.switchCurrent( px, py );
-    _m.setDirection( direction.west );
+    //    _m.setDirection( direction.west );
   }
 
   public void moveRight() {
@@ -467,7 +482,7 @@ class path {
       }
     }
     _m.switchCurrent( px, py );
-    _m.setDirection( direction.east );    
+    //    _m.setDirection( direction.east );
   }
 
   public void moveUp() {
@@ -482,7 +497,7 @@ class path {
       }
     }
     _m.switchCurrent( px, py );
-    _m.setDirection( direction.north );    
+    //    _m.setDirection( direction.north );
   }
 
   public void moveDown() {
@@ -497,7 +512,7 @@ class path {
       }
     }
     _m.switchCurrent( px, py );
-    _m.setDirection( direction.south );
+    //    _m.setDirection( direction.south );
   }
 }
 
@@ -940,41 +955,140 @@ void draw() {
 }
 
 void keyPressed() {
-  if ( keyCode == UP ) {
-    t.getP().moveUp();
-  }
-  if ( keyCode == DOWN ) {
-    t.getP().moveDown();
-  }
-  if ( keyCode == LEFT ) {
-    t.getP().moveLeft();
-  }
-  if ( keyCode == RIGHT ) {
-    t.getP().moveRight();
-  }
-  if ( ( keyCode == 'V' ) || ( keyCode == 'v' ) ) {
-    m.changeViewmode();
-  }
-  if ( keyCode == '2' ) {
-    m.setViewmode( modes.m2d );
-  }
-  if ( keyCode == '3' ) {
-    m.setViewmode( modes.m3d );
-  }
-  if ( ( keyCode == 'W' ) || ( keyCode == 'w' ) ) {
-    m.setDirection( direction.north );
-  }
-  if ( ( keyCode == 'S' ) || ( keyCode == 's' ) ) {
-    m.setDirection( direction.east );
-  }
-  if ( ( keyCode == 'Z' ) || ( keyCode == 'z' ) ) {
-    m.setDirection( direction.south );
-  }
-  if ( ( keyCode == 'A' ) || ( keyCode == 'a' ) ) {
-    m.setDirection( direction.west );
-  }
-  if ( ( keyCode == 'Q' ) || ( keyCode == 'q' ) ) {
-    switch( m.getDirection() ) {
+  if ( m.getViewmode() == modes.m2d ) {
+    if ( keyCode == UP ) {
+      t.getP().moveUp();
+    }
+    if ( keyCode == DOWN ) {
+      t.getP().moveDown();
+    }
+    if ( keyCode == LEFT ) {
+      t.getP().moveLeft();
+    }
+    if ( keyCode == RIGHT ) {
+      t.getP().moveRight();
+    }
+    if ( ( keyCode == 'V' ) || ( keyCode == 'v' ) ) {
+      m.changeViewmode();
+    }
+    if ( keyCode == '2' ) {
+      m.setViewmode( modes.m2d );
+    }
+    if ( keyCode == '3' ) {
+      m.setViewmode( modes.m3d );
+    }
+    if ( ( keyCode == 'W' ) || ( keyCode == 'w' ) ) {
+      m.setDirection( direction.north );
+    }
+    if ( ( keyCode == 'S' ) || ( keyCode == 's' ) ) {
+      m.setDirection( direction.east );
+    }
+    if ( ( keyCode == 'Z' ) || ( keyCode == 'z' ) ) {
+      m.setDirection( direction.south );
+    }
+    if ( ( keyCode == 'A' ) || ( keyCode == 'a' ) ) {
+      m.setDirection( direction.west );
+    }
+  } else {
+    if ( keyCode == UP ) {   //move forward in line of direction
+      switch( m.getDirection() ) {
+      case north:
+        t.getP().moveUp();
+        break;
+      case east:
+        t.getP().moveRight();
+        break;
+      case south:
+        t.getP().moveDown();
+        break;
+      case west:
+        t.getP().moveLeft();
+        break;
+      default: 
+        t.getP().moveUp();
+        break;
+      }
+    }
+    if ( keyCode == DOWN ) { //move backwards in line of direction
+      switch( m.getDirection() ) {
+      case north:
+        t.getP().moveDown();
+        break;
+      case east:
+        t.getP().moveLeft();
+        break;
+      case south:
+        t.getP().moveUp();
+        break;
+      case west:
+        t.getP().moveRight();
+        break;
+      default: 
+        t.getP().moveUp();
+        break;
+      }
+    }
+    if ( keyCode == LEFT ) { //move to the left respective of line of direction
+      switch( m.getDirection() ) {
+      case north:
+        t.getP().moveLeft();
+        break;
+      case east:
+        t.getP().moveUp();
+        break;
+      case south:
+        t.getP().moveRight();
+        break;
+      case west:
+        t.getP().moveRight();
+        break;
+      default: 
+        t.getP().moveDown();
+        break;
+      }
+    }
+    if ( keyCode == RIGHT ) { //move to the right respective of line of direction
+      switch( m.getDirection() ) {
+      case north:
+        t.getP().moveRight();
+        break;
+      case east:
+        t.getP().moveDown();
+        break;
+      case south:
+        t.getP().moveLeft();
+        break;
+      case west:
+        t.getP().moveRight();
+        break;
+      default: 
+        t.getP().moveUp();
+        break;
+      }
+    }
+    if ( ( keyCode == 'V' ) || ( keyCode == 'v' ) ) {
+      m.changeViewmode();
+    }
+    if ( keyCode == '2' ) {
+      m.setViewmode( modes.m2d );
+    }
+    if ( keyCode == '3' ) {
+      m.setViewmode( modes.m3d );
+    }
+    if ( ( keyCode == 'W' ) || ( keyCode == 'w' ) ) {
+      m.setDirection( direction.north );
+    }
+    if ( ( keyCode == 'S' ) || ( keyCode == 's' ) ) {
+      m.setDirection( direction.east );
+    }
+    if ( ( keyCode == 'Z' ) || ( keyCode == 'z' ) ) {
+      m.setDirection( direction.south );
+    }
+    if ( ( keyCode == 'A' ) || ( keyCode == 'a' ) ) {
+      m.setDirection( direction.west );
+    }
+    if ( ( keyCode == 'Q' ) || ( keyCode == 'q' ) ) {
+      switch( m.getDirection() ) {
       case north:
         m.setDirection( direction.west );
         break;
@@ -990,10 +1104,10 @@ void keyPressed() {
       default: 
         m.setDirection( direction.north );
         break;
+      }
     }
-  }
-  if ( ( keyCode == 'E' ) || ( keyCode == 'e' ) ) {
-    switch( m.getDirection() ) {
+    if ( ( keyCode == 'E' ) || ( keyCode == 'e' ) ) {
+      switch( m.getDirection() ) {
       case north:
         m.setDirection( direction.east );
         break;
@@ -1009,9 +1123,10 @@ void keyPressed() {
       default: 
         m.setDirection( direction.north );
         break;
+      }
     }
   }
-  
+
   println( "x= "+t.getP().X()+" y= "+t.getP().Y()+" direction= "+m.getDirection() );
 }
 
